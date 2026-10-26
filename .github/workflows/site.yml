@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Récupérer le code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Valider le HTML
         run: npx --yes html-validate@9 index.html
@@ -45,7 +45,7 @@ jobs:
       cancel-in-progress: false
     steps:
       - name: Récupérer le code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Préparer GitHub Pages
         uses: actions/configure-pages@v5
