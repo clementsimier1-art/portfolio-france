@@ -1,0 +1,60 @@
+# Pipeline du portfolio : vérifie le site à chaque modification,
+# puis le met en ligne sur GitHub Pages quand la branche main change.
+name: Vérifier et publier le site
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verifier:
+    name: Vérifier le HTML et les liens
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v4
+
+      - name: Valider le HTML
+        run: npx --yes html-validate@9 index.html
+
+      - name: Vérifier les liens
+        uses: lycheeverse/lychee-action@v2
+        with:
+          # LinkedIn bloque les robots, on l'exclut pour éviter les fausses erreurs.
+          args: --no-progress --exclude 'linkedin\.com' index.html
+          fail: true
+
+  publier:
+    name: Publier sur GitHub Pages
+    needs: verifier
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploiement.outputs.page_url }}
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v4
+
+      - name: Préparer GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Empaqueter le site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+      - name: Déployer
+        id: deploiement
+        uses: actions/deploy-pages@v4
